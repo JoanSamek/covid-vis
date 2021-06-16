@@ -76,9 +76,9 @@
                             </b-jumbotron>
                         </b-col>
                         <b-col v-if='countryChartData'>
-                            <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
+                            <!-- <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
                                 line-colors='["#17a2b8","#dc3545","#ffc107"]' grid='true' grid-text-weight='bold' resize='true'
-                            ></line-chart>
+                            ></line-chart> -->
                         </b-col>
                     </b-row>
                 </b-container>
@@ -142,7 +142,7 @@
                         })
                         
                     })
-                    .error(err => alert(err))
+                    .catch(err => alert(err))
                 this.countryChartData = temp
             }
         },
