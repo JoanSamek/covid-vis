@@ -1,5 +1,12 @@
 <template>
-    <div>{{test}}</div>
+    <div>
+        <b-tabs content-class='mt-3' v-model='tabIndex'>
+            <b-tab title='World' :title-link-class='linkClass(0)'>{{linkClass(0)}}</b-tab>
+            <b-tab title='Country' :title-link-class='linkClass(1)'>{{linkClass(1)}}</b-tab>
+            <b-tab title='Correlation' :title-link-class='linkClass(2)'>{{linkClass(2)}}</b-tab>
+            <b-tab title='Raport' title-link-class='text-info'>{{linkClass(3)}}</b-tab>
+        </b-tabs>
+    </div>
 
 </template>
 
@@ -9,18 +16,23 @@
     export default {
         name: 'MainPage',
         data(){
-            return{}
+            return{
+                tabIndex: 0
+            }
         },
         computed: {
             ...mapState({
-                test: state => state.test.test
+                test: (state) => state.test.test
             })
         },
         methods: {
-            ...mapActions('test', ['getTest'])
+            ...mapActions('test', ['getTest']),
+            linkClass(ind){
+                return this.tabIndex==ind?'text-dark':'text-info'
+            }
         },
         created(){
-            this.getTest()
+            // this.getTest()
         }
     }
 </script>
