@@ -43,7 +43,45 @@
                 
             </b-tab>
             <b-tab title='Country' :title-link-class='linkClass(1)'>
+                <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;'></v-select>
+                <br>
+                <b-container>
+                    <b-row>
+                        <b-col>
+                            <b-jumbotron v-if='chosenCountry' bg-variant='info' text-variant='white' border-variant='dark' style='margin:auto; width: 700px; padding:2rem 1rem;'>
+                                <b-container>
+                                    <b-row>
+                                        <b-col>
+                                            <h2>
+                                                {{chosenCountry.country}} - {{chosenCountry.countryInfo.iso2}}
+                                            </h2>
+                                            <b-img thumbnail :src='chosenCountry.countryInfo.flag' alt='country flag'></b-img>
+                                            <p>Population: {{chosenCountry.population}}</p>
+                                        </b-col>
+                                        <b-col>
+                                        <hr class='my-4'>
+                                            <p style='text-align:left'>
+                                                All cases: {{chosenCountry.cases}} ({{chosenCountry.casesPerOneMillion}} per million)<br>
+                                                All deaths: {{chosenCountry.deaths}} ({{chosenCountry.deathsPerOneMillion}} per million)<br>
+                                                Recovered: {{chosenCountry.recovered}} ({{chosenCountry.recoveredPerOneMillion}} per million)<br>
+                                                Active: {{chosenCountry.active}} ({{chosenCountry.activePerOneMillion}} per million)<br>
+                                                Critical: {{chosenCountry.critical}} ({{chosenCountry.criticalPerOneMillion}} per million)<br>
+                                                Tests: {{chosenCountry.tests}} ({{chosenCountry.testsPerOneMillion}} per million)<br>
+                                                Today ({{getCurrentDate()}}): {{chosenCountry.todayCases}} cases, {{chosenCountry.todayDeaths}} deaths
+                                            </p>
+                                            <hr class='my-4'>
+                                        </b-col>
+                                    </b-row>
+                                </b-container>
+                            </b-jumbotron>
+                        </b-col>
+                        <b-col>
+
+                        </b-col>
+                    </b-row>
+                </b-container>
                 
+                {{countryCases}}
             </b-tab>
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>{{linkClass(2)}}</b-tab>
             <b-tab title='Raport' title-link-class='text-info'>{{linkClass(3)}}</b-tab>
@@ -68,6 +106,8 @@
                 worldCases:[],
                 worldTable:[],
                 mapVariant: 'cases',
+                chosenCountry: '',
+                countryCases:[]
             }
         },
         computed: {
@@ -83,16 +123,30 @@
             },
                
         },
+        watch:{
+            chosenCountry(){
+                let link ='https://corona.lmao.ninja/v2/historical/'
+                link+=this.chosenCountry.country+'?lastdays=all'
+                axios
+                    .get(link)
+                    .then(response => {this.countryCases = response.data})
+            }
+        },
         methods: {
             ...mapActions('test', ['getTest']),
             linkClass(ind){
                 return this.tabIndex==ind?'text-dark under':'text-info'
+            },
+            getCurrentDate(){
+                const current = new Date()
+                return current.getDate()+'/'+current.getMonth()+'/'+current.getFullYear()
             }
+            
         },
         created(){
             axios
                 .get('https://corona.lmao.ninja/v2/countries?yesterday&sort')
-                .then(response => {this.worldCases = response.data; })
+                .then(response => {this.worldCases = response.data})
 
             const tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
             tableCols.forEach(column => {

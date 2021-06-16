@@ -13,6 +13,10 @@ Vue.use(IconsPlugin)
 import Vuex from 'vuex'
 Vue.use(Vuex)
 
+import vSelect from 'vue-select'
+import 'vue-select/dist/vue-select.css'
+Vue.component('v-select', vSelect)
+
 new Vue({
   store,
   render: h => h(App),
