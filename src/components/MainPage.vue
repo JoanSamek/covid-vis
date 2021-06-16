@@ -79,6 +79,7 @@
                             <!-- <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
                                 line-colors='["#17a2b8","#dc3545","#ffc107"]' grid='true' grid-text-weight='bold' resize='true'
                             ></line-chart> -->
+                            <!-- <line-chart :chartData='countryChartData'></line-chart> -->
                         </b-col>
                     </b-row>
                 </b-container>
@@ -97,6 +98,7 @@
     import {mapState, mapActions} from 'vuex'
     import MapChart from 'vue-map-chart'
     import axios from 'axios'
+    // import LineChart from './LineChart.vue'
 
     export default {
         name: 'MainPage',
@@ -125,21 +127,34 @@
         },
         watch:{
             chosenCountry(){
-                let temp = []
+                let temp = {}
                 let link ='https://corona.lmao.ninja/v2/historical/'
                 link+=this.chosenCountry.country+'?lastdays=all'
                 axios
                     .get(link)
                     .then(response => {
                         let countryCases = response.data.timeline
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            temp.push({
-                                "date": date,
-                                "cases": countryCases.cases,
-                                "deaths": countryCases.deaths,
-                                "recovered": countryCases.recovered
-                            })
-                        })
+                        console.log(JSON.stringify(countryCases))
+                        //morris
+                        // Object.keys(countryCases.cases).forEach(date =>{
+                        //     temp.push({
+                        //         "date": date,
+                        //         "cases": countryCases.cases[date],
+                        //         "deaths": countryCases.deaths[date],
+                        //         "recovered": countryCases.recovered[date]
+                        //     })
+                        // })
+                        // vue chart js
+                        // temp = {"labels": Object.keys(countryCases.cases), "datasets":[
+                        //     {label:'cases', backgroundColor: "#17a2b8", data: []},
+                        //     {label:'deaths', backgroundColor: "#dc3545", data: []},
+                        //     {label:'recovered', backgroundColor: "#ffc107", data: []}
+                        // ]}
+                        // Object.keys(countryCases.cases).forEach(date =>{
+                        //     temp.datasets[0].data.push(countryCases.cases[date])
+                        //     temp.datasets[1].data.push(countryCases.deaths[date])
+                        //     temp.datasets[2].data.push(countryCases.recovered[date])
+                        // })
                         
                     })
                     .catch(err => alert(err))
@@ -168,7 +183,8 @@
             })
         },
         components:{
-            MapChart
+            MapChart,
+            // LineChart
         }
     }
 </script>
