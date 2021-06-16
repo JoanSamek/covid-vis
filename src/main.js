@@ -22,6 +22,11 @@ Vue.component('v-select', vSelect)
 // import LineChart from 'vue-morris'
 // Vue.component('line-chart', LineChart)
 
+// import VueChartkick from 'vue-chartkick'
+// import 'chartkick/chart.js'
+// Vue.use(VueChartkick)
+// Vue.component('line-chart', VueChartkick.LineChart)
+
 new Vue({
   store,
   render: h => h(App),

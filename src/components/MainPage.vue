@@ -45,9 +45,9 @@
             <b-tab title='Country' :title-link-class='linkClass(1)'>
                 <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;'></v-select>
                 <br>
-                <b-container v-if='chosenCountry'>
+                <b-container v-if='chosenCountry' style='width:100%; max-width: 100%;'>
                     <b-row>
-                        <b-col>
+                        <b-col cols=5>
                             <b-jumbotron bg-variant='info' text-variant='white' border-variant='dark' style='margin:auto; width: 700px; padding:2rem 1rem;'>
                                 <b-container>
                                     <b-row>
@@ -70,19 +70,31 @@
                                                 Today ({{getCurrentDate()}}): {{chosenCountry.todayCases}} cases, {{chosenCountry.todayDeaths}} deaths
                                             </p>
                                             <hr class='my-4'>
+                                            <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                                         </b-col>
                                     </b-row>
                                 </b-container>
-                            </b-jumbotron>
+                            </b-jumbotron><br><br>
+                            <b-button-group>
+                                <b-button variant='warning'>All</b-button>
+                                <b-button variant='info'>Last 30 days</b-button>
+                                <b-button variant='info'>Last 7 days</b-button>
+                            </b-button-group>
+                            <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-col>
-                        <b-col v-if='countryChartData'>
+                        <b-col cols=7>
+                            <line-chart v-if='countryChartData' :chart-data='countryChartData' :styles="{height:'600px', width:'900px'}" :options='options'></line-chart>
                             <!-- <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
                                 line-colors='["#17a2b8","#dc3545","#ffc107"]' grid='true' grid-text-weight='bold' resize='true'
                             ></line-chart> -->
-                            <!-- <line-chart :chartData='countryChartData'></line-chart> -->
+                            <!-- <line-chart :data="{'2017-01-01': 3, '2017-01-02': 4}" /> -->
                         </b-col>
                     </b-row>
                 </b-container>
+                <div  v-if='countryChartData'>
+                    <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; float:right;' class='h2'></b-icon>
+                    <b-table striped :items='countryTableData' :fields='countryTable'></b-table>
+                </div>
             </b-tab>
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>{{linkClass(2)}}</b-tab>
             <b-tab title='Raport' title-link-class='text-info'>{{linkClass(3)}}</b-tab>
@@ -98,7 +110,7 @@
     import {mapState, mapActions} from 'vuex'
     import MapChart from 'vue-map-chart'
     import axios from 'axios'
-    // import LineChart from './LineChart.vue'
+    import LineChart from './LineChart.js'
 
     export default {
         name: 'MainPage',
@@ -109,7 +121,21 @@
                 worldTable:[],
                 mapVariant: 'cases',
                 chosenCountry: '',
-                countryChartData: []
+                countryTableData:[],
+                countryTable: [],
+                countryChartData: {'labels':[], "datasets":[]},
+                options: {
+                    scales: {
+                        yAxes: [
+                            {
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
             }
         },
         computed: {
@@ -127,7 +153,8 @@
         },
         watch:{
             chosenCountry(){
-                let temp = {}
+                let temp = {'labels':[], "datasets":[]}, tempTable = []
+                this.countryChartData = temp
                 let link ='https://corona.lmao.ninja/v2/historical/'
                 link+=this.chosenCountry.country+'?lastdays=all'
                 axios
@@ -135,30 +162,40 @@
                     .then(response => {
                         let countryCases = response.data.timeline
                         console.log(JSON.stringify(countryCases))
-                        //morris
-                        // Object.keys(countryCases.cases).forEach(date =>{
-                        //     temp.push({
-                        //         "date": date,
-                        //         "cases": countryCases.cases[date],
-                        //         "deaths": countryCases.deaths[date],
-                        //         "recovered": countryCases.recovered[date]
-                        //     })
-                        // })
+                        Object.keys(countryCases.cases).forEach(date =>{
+                            tempTable.push({
+                                "date": date,
+                                "cases": countryCases.cases[date],
+                                "deaths": countryCases.deaths[date],
+                                "recovered": countryCases.recovered[date]
+                            })
+                        })
                         // vue chart js
-                        // temp = {"labels": Object.keys(countryCases.cases), "datasets":[
-                        //     {label:'cases', backgroundColor: "#17a2b8", data: []},
-                        //     {label:'deaths', backgroundColor: "#dc3545", data: []},
-                        //     {label:'recovered', backgroundColor: "#ffc107", data: []}
-                        // ]}
-                        // Object.keys(countryCases.cases).forEach(date =>{
-                        //     temp.datasets[0].data.push(countryCases.cases[date])
-                        //     temp.datasets[1].data.push(countryCases.deaths[date])
-                        //     temp.datasets[2].data.push(countryCases.recovered[date])
-                        // })
-                        
+                        temp = {"labels": Object.keys(countryCases.cases), "datasets":[
+                            {label:'cases', borderColor: "#17a2b8", fill: false, data: []},
+                            {label:'deaths', borderColor: "#dc3545", fill: false, data: []},
+                            {label:'recovered', borderColor: "#ffc107", fill: false, data: []}
+                        ]}
+                        Object.keys(countryCases.cases).forEach(date =>{
+                            temp.datasets[0].data.push(countryCases.cases[date])
+                            temp.datasets[1].data.push(countryCases.deaths[date])
+                            temp.datasets[2].data.push(countryCases.recovered[date])
+                        })
+                        // VueChartkick
+                            // temp = [
+                            //     {"name": 'cases', "data": countryCases.cases },
+                            //     {"name": 'deaths', "data": countryCases.deaths },
+                            //     {"name": 'recovered', "data": countryCases.recovered },
+                            // ]
+                        this.countryChartData = temp
+                        this.countryTableData = tempTable
                     })
-                    .catch(err => alert(err))
-                this.countryChartData = temp
+                    .catch(err => {
+                        console.log(JSON.stringify(err.response.data.message))
+                        // alert(err); 
+                        //Country not found or doesn't have any historical data (Mont...)
+                    })
+
             }
         },
         methods: {
@@ -177,14 +214,18 @@
                 .get('https://corona.lmao.ninja/v2/countries?yesterday&sort')
                 .then(response => {this.worldCases = response.data})
 
-            const tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
+            let tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
             tableCols.forEach(column => {
                 this.worldTable.push({'key': column, 'sortable': true})
+            })
+            tableCols = ['date', 'cases', 'deaths','recovered'] 
+            tableCols.forEach(column => {
+                this.countryTable.push({'key': column, 'sortable': true})
             })
         },
         components:{
             MapChart,
-            // LineChart
+            LineChart
         }
     }
 </script>
