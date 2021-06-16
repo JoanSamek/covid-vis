@@ -17,6 +17,11 @@ import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
 Vue.component('v-select', vSelect)
 
+import Raphael from 'raphael/raphael'
+global.Raphael = Raphael
+import LineChart from 'vue-morris'
+Vue.component('line-chart', LineChart)
+
 new Vue({
   store,
   render: h => h(App),

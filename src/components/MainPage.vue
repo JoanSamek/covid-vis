@@ -45,10 +45,10 @@
             <b-tab title='Country' :title-link-class='linkClass(1)'>
                 <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;'></v-select>
                 <br>
-                <b-container>
+                <b-container v-if='chosenCountry'>
                     <b-row>
                         <b-col>
-                            <b-jumbotron v-if='chosenCountry' bg-variant='info' text-variant='white' border-variant='dark' style='margin:auto; width: 700px; padding:2rem 1rem;'>
+                            <b-jumbotron bg-variant='info' text-variant='white' border-variant='dark' style='margin:auto; width: 700px; padding:2rem 1rem;'>
                                 <b-container>
                                     <b-row>
                                         <b-col>
@@ -75,13 +75,13 @@
                                 </b-container>
                             </b-jumbotron>
                         </b-col>
-                        <b-col>
-
+                        <b-col v-if='countryChartData'>
+                            <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
+                                line-colors='["#17a2b8","#dc3545","#ffc107"]' grid='true' grid-text-weight='bold' resize='true'
+                            ></line-chart>
                         </b-col>
                     </b-row>
                 </b-container>
-                
-                {{countryCases}}
             </b-tab>
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>{{linkClass(2)}}</b-tab>
             <b-tab title='Raport' title-link-class='text-info'>{{linkClass(3)}}</b-tab>
@@ -107,7 +107,7 @@
                 worldTable:[],
                 mapVariant: 'cases',
                 chosenCountry: '',
-                countryCases:[]
+                countryChartData: []
             }
         },
         computed: {
@@ -125,11 +125,25 @@
         },
         watch:{
             chosenCountry(){
+                let temp = []
                 let link ='https://corona.lmao.ninja/v2/historical/'
                 link+=this.chosenCountry.country+'?lastdays=all'
                 axios
                     .get(link)
-                    .then(response => {this.countryCases = response.data})
+                    .then(response => {
+                        let countryCases = response.data.timeline
+                        Object.keys(countryCases.cases).forEach(date =>{
+                            temp.push({
+                                "date": date,
+                                "cases": countryCases.cases,
+                                "deaths": countryCases.deaths,
+                                "recovered": countryCases.recovered
+                            })
+                        })
+                        
+                    })
+                    .error(err => alert(err))
+                this.countryChartData = temp
             }
         },
         methods: {
