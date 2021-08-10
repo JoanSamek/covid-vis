@@ -15,22 +15,22 @@
                         <b-col cols=1>
                             <b-button-group vertical>
                                 <b-dropdown right text='Cases' variant='warning'>
-                                    <b-dropdown-item>all</b-dropdown-item>
-                                    <b-dropdown-item>today</b-dropdown-item>
-                                    <b-dropdown-item>per mln</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="cases"'>all</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="todayCases"'>today</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="casesPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
                                 <b-dropdown right text='Deaths' variant='info'>
-                                    <b-dropdown-item>all</b-dropdown-item>
-                                    <b-dropdown-item>today</b-dropdown-item>
-                                    <b-dropdown-item>per mln</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="deaths"'>all</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="todayDeaths"'>today</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="deathsPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
                                 <b-dropdown right text='Tests' variant='info'>
-                                    <b-dropdown-item>all</b-dropdown-item>
-                                    <b-dropdown-item>per mln</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="tests"'>all</b-dropdown-item>
+                                    <b-dropdown-item @click='worldVariant="testsPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
-                                <b-button variant='info'>Recovered</b-button>
-                                <b-button variant='info'>Active</b-button>
-                                <b-button variant='info'>Critical</b-button>
+                                <b-button variant='info' @click='worldVariant="recovered"'>Recovered</b-button>
+                                <b-button variant='info' @click='worldVariant="active"'>Active</b-button>
+                                <b-button variant='info' @click='worldVariant="critical"'>Critical</b-button>
                             </b-button-group><br><br>
                             <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-col>
@@ -145,10 +145,12 @@
         name: 'MainPage',
         data(){
             return{
-                tabIndex: 0,
-                worldCases:[],
-                worldTable:[],
-                mapVariant: 'cases',
+                tabIndex: 0, //chosen tab
+                //WORLD TAB
+                worldCases:[], //api response for world
+                worldTable:[], //data for world table
+                worldVariant: 'cases',
+                //COUNTRY TAB
                 chosenCountry: '',
                 countryTableData:[],
                 countryTable: [],
@@ -165,6 +167,8 @@
                     responsive: true,
                     maintainAspectRatio: false
                 },
+                //CORRELATION TAB
+                //RAPORT TAB
                 raportFile:['Total cases world map', 'Spain - description card', 'Spain - last 30 days chart', 'Total tests world map']
             }
         },
@@ -191,7 +195,6 @@
                     .get(link)
                     .then(response => {
                         let countryCases = response.data.timeline
-                        console.log(JSON.stringify(countryCases))
                         Object.keys(countryCases.cases).forEach(date =>{
                             tempTable.push({
                                 "date": date,
@@ -240,14 +243,17 @@
             
         },
         created(){
+            //api query
             axios
                 .get('https://corona.lmao.ninja/v2/countries?yesterday&sort')
                 .then(response => {this.worldCases = response.data})
-
+            
+            //world table thead
             let tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
             tableCols.forEach(column => {
                 this.worldTable.push({'key': column, 'sortable': true})
             })
+            //country table thead
             tableCols = ['date', 'cases', 'deaths','recovered'] 
             tableCols.forEach(column => {
                 this.countryTable.push({'key': column, 'sortable': true})
