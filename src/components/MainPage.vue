@@ -137,9 +137,6 @@
 
 <script>
     import {mapState, mapActions} from 'vuex'
-    import MapChart from 'vue-map-chart'
-    import axios from 'axios'
-    import LineChart from './LineChart.js'
 
     export default {
         name: 'MainPage',
@@ -170,100 +167,18 @@
         },
         computed: {
             ...mapState({
-                test: (state) => state.test.test
-            }),
-            worldMap(){
-                let data = {}
-                this.worldCases.forEach(country => {
-                    data[country.countryInfo.iso2] = country[this.worldVariant]
-                });
-                return data=={}?0:data
-            },
-               
-        },
-        watch:{
-            chosenCountry(){
-                let temp = {'labels':[], "datasets":[]}, tempTable = []
-                this.countryChartData = temp
-                let link ='https://corona.lmao.ninja/v2/historical/'
-                link+=this.chosenCountry.country+'?lastdays=all'
-                axios
-                    .get(link)
-                    .then(response => {
-                        let countryCases = response.data.timeline
-                        console.log(JSON.stringify(countryCases))
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            tempTable.push({
-                                "date": date,
-                                "cases": countryCases.cases[date],
-                                "deaths": countryCases.deaths[date],
-                                "recovered": countryCases.recovered[date]
-                            })
-                        })
-                        // vue chart js
-                        temp = {"labels": Object.keys(countryCases.cases), "datasets":[
-                            {label:'cases', borderColor: "#17a2b8", fill: false, data: []},
-                            {label:'deaths', borderColor: "#dc3545", fill: false, data: []},
-                            {label:'recovered', borderColor: "#ffc107", fill: false, data: []}
-                        ]}
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            temp.datasets[0].data.push(countryCases.cases[date])
-                            temp.datasets[1].data.push(countryCases.deaths[date])
-                            temp.datasets[2].data.push(countryCases.recovered[date])
-                        })
-                        // VueChartkick
-                            // temp = [
-                            //     {"name": 'cases', "data": countryCases.cases },
-                            //     {"name": 'deaths', "data": countryCases.deaths },
-                            //     {"name": 'recovered', "data": countryCases.recovered },
-                            // ]
-                        this.countryChartData = temp
-                        this.countryTableData = tempTable
-                    })
-                    .catch(err => {
-                        console.log(JSON.stringify(err.response.data.message))
-                        // alert(err); 
-                        //Country not found or doesn't have any historical data (Mont...)
-                    })
-
-            }
+                test: state => state.test.test
+            })
         },
         methods: {
-            ...mapActions('test', ['getTest']),
-            linkClass(ind){
-                return this.tabIndex==ind?'text-dark under':'text-info'
-            },
-            getCurrentDate(){
-                const current = new Date()
-                return current.getDate()+'/'+current.getMonth()+'/'+current.getFullYear()
-            }
-            
+            ...mapActions('test', ['getTest'])
         },
         created(){
-            axios
-                .get('https://corona.lmao.ninja/v2/countries?yesterday&sort')
-                .then(response => {this.worldCases = response.data})
-
-            let tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
-            tableCols.forEach(column => {
-                this.worldTable.push({'key': column, 'sortable': true})
-            })
-            tableCols = ['date', 'cases', 'deaths','recovered'] 
-            tableCols.forEach(column => {
-                this.countryTable.push({'key': column, 'sortable': true})
-            })
-        },
-        components:{
-            MapChart,
-            LineChart
+            this.getTest()
         }
     }
 </script>
 
 <style>
-    .under{
-        text-decoration: underline;
-        font-weight: bold;
-    }
 
 </style>
