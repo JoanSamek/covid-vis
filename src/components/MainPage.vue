@@ -16,23 +16,23 @@
                         </b-col>
                         <b-col cols=1>
                             <b-button-group vertical>
-                                <b-dropdown right text='Cases' variant='warning'>
+                                <b-dropdown right text='Cases' :variant='getFilterBtnVariant("cases")'>
                                     <b-dropdown-item @click='worldVariant="cases"'>all</b-dropdown-item>
                                     <b-dropdown-item @click='worldVariant="todayCases"'>today</b-dropdown-item>
                                     <b-dropdown-item @click='worldVariant="casesPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
-                                <b-dropdown right text='Deaths' variant='info'>
+                                <b-dropdown right text='Deaths' :variant='getFilterBtnVariant("deaths")'>
                                     <b-dropdown-item @click='worldVariant="deaths"'>all</b-dropdown-item>
                                     <b-dropdown-item @click='worldVariant="todayDeaths"'>today</b-dropdown-item>
                                     <b-dropdown-item @click='worldVariant="deathsPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
-                                <b-dropdown right text='Tests' variant='info'>
+                                <b-dropdown right text='Tests' :variant='getFilterBtnVariant("tests")'>
                                     <b-dropdown-item @click='worldVariant="tests"'>all</b-dropdown-item>
                                     <b-dropdown-item @click='worldVariant="testsPerOneMillion"'>per mln</b-dropdown-item>
                                 </b-dropdown>
-                                <b-button variant='info' @click='worldVariant="recovered"'>Recovered</b-button>
-                                <b-button variant='info' @click='worldVariant="active"'>Active</b-button>
-                                <b-button variant='info' @click='worldVariant="critical"'>Critical</b-button>
+                                <b-button :variant='getFilterBtnVariant("recovered")' @click='worldVariant="recovered"'>Recovered</b-button>
+                                <b-button :variant='getFilterBtnVariant("active")' @click='worldVariant="active"'>Active</b-button>
+                                <b-button :variant='getFilterBtnVariant("critical")' @click='worldVariant="critical"'>Critical</b-button>
                             </b-button-group><br><br>
                             <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-col>
@@ -241,6 +241,10 @@
             getCurrentDate(){
                 const current = new Date()
                 return current.getDate()+'/'+current.getMonth()+'/'+current.getFullYear()
+            },
+            getFilterBtnVariant(name){
+                if(this.worldVariant.toLowerCase().includes(name)) return 'warning'
+                return 'info'
             },
             countryClicked(country){
                 this.chosenCountry = this.worldCases.find(element => element.countryInfo.iso2 == country.code)
