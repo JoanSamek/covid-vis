@@ -10,7 +10,9 @@
                                 highColor="#ff0000"
                                 lowColor="#17a2b8"
                                 countryStrokeColor="#909090"
-                                defaultCountryFillColor="#dadada" />
+                                defaultCountryFillColor="#dadada" 
+                                @clickCountry='countryClicked'
+                                />
                         </b-col>
                         <b-col cols=1>
                             <b-button-group vertical>
@@ -239,6 +241,11 @@
             getCurrentDate(){
                 const current = new Date()
                 return current.getDate()+'/'+current.getMonth()+'/'+current.getFullYear()
+            },
+            countryClicked(country){
+                this.chosenCountry = this.worldCases.find(element => element.countryInfo.iso2 == country.code)
+                this.tabIndex = 1 
+                window.scrollTo(0,0)
             }
             
         },
