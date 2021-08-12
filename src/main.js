@@ -17,15 +17,9 @@ import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
 Vue.component('v-select', vSelect)
 
-// import Raphael from 'raphael/raphael'
-// global.Raphael = Raphael
-// import LineChart from 'vue-morris'
-// Vue.component('line-chart', LineChart)
-
-// import VueChartkick from 'vue-chartkick'
-// import 'chartkick/chart.js'
-// Vue.use(VueChartkick)
-// Vue.component('line-chart', VueChartkick.LineChart)
+import VueApexCharts from 'vue-apexcharts'
+Vue.use(VueApexCharts)
+Vue.component('apexchart', VueApexCharts)
 
 new Vue({
   store,

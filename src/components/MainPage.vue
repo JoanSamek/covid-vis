@@ -85,11 +85,7 @@
                             <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-col>
                         <b-col cols=7>
-                            <line-chart v-if='countryChartData' :chart-data='countryChartData' :styles="{height:'600px', width:'900px'}" :options='options'></line-chart>
-                            <!-- <line-chart :data='countryChartData' xkey='date' ykeys='["cases","deaths","recovered"]'
-                                line-colors='["#17a2b8","#dc3545","#ffc107"]' grid='true' grid-text-weight='bold' resize='true'
-                            ></line-chart> -->
-                            <!-- <line-chart :data="{'2017-01-01': 3, '2017-01-02': 4}" /> -->
+                            
                         </b-col>
                     </b-row>
                 </b-container>
@@ -141,7 +137,6 @@
     import {mapState, mapActions} from 'vuex'
     import MapChart from 'vue-map-chart'
     import axios from 'axios'
-    import LineChart from './LineChart.js'
 
     export default {
         name: 'MainPage',
@@ -272,7 +267,6 @@
         },
         components:{
             MapChart,
-            LineChart
         }
     }
 </script>
