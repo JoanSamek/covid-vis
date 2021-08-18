@@ -2,7 +2,7 @@
     <div>
         <b-tabs content-class='mt-3' v-model='tabIndex' justified>
             <b-tab title='World' :title-link-class='linkClass(0)'>
-                <World :worldCases='worldCases' :worldTable='worldTable' @country-details='chosenCountry=$event; tabIndex=1' />
+                <World :worldCases='worldCases' :worldTable='worldTable' @country-details='getCountryDetails' />
             </b-tab>
             <b-tab title='Country' :title-link-class='linkClass(1)'>
                 <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;'></v-select>
@@ -79,6 +79,11 @@
             linkClass(ind){
                 return this.tabIndex==ind?'text-dark under':'text-info'
             },
+            getCountryDetails(country){
+                this.chosenCountry=country; 
+                this.tabIndex=1
+                window.scrollTo(0,0)
+            }
         },
         created(){
             //api query

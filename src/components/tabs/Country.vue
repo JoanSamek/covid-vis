@@ -1,6 +1,9 @@
 <template>
     <div>
-        <b-container style='width:100%; max-width: 100%;'>
+        <b-container style='width:100%; max-width: 100%;' v-if='error' class="text-center">
+                {{error}}
+        </b-container>
+        <b-container style='width:100%; max-width: 100%;' v-else>
             <b-row>
                 <b-col cols=5>
                     <b-jumbotron bg-variant='info' text-variant='white' border-variant='dark' style='margin:auto; width: 700px; padding:2rem 1rem;'>
@@ -31,6 +34,11 @@
                         </b-container>
                     </b-jumbotron><br><br>
                     <b-button-group>
+                        <b-button :variant='getBtnVariant(true, showDaily)' @click='showDaily=true'>Daily</b-button>
+                        <b-button :variant='getBtnVariant(false, showDaily)' @click='showDaily=false'>Cumulatively</b-button>
+                    </b-button-group>
+                    <br><br>
+                    <b-button-group>
                         <b-button :variant='getBtnVariant("all", countryPeriod)' @click='countryPeriod="all"'>All</b-button>
                         <b-button :variant='getBtnVariant("30", countryPeriod)' @click='countryPeriod="30"'>Last 30 days</b-button>
                         <b-button :variant='getBtnVariant("7", countryPeriod)' @click='countryPeriod="7"'>Last 7 days</b-button>
@@ -42,7 +50,7 @@
                 </b-col>
             </b-row>
         </b-container>
-        <div  v-if='countryChartData'>
+        <div  v-if='countryChartData&&!error'>
             <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; float:right;' class='h2'></b-icon>
             <b-table striped :items='countryTableData' :fields='countryTable'></b-table>
         </div>
@@ -62,6 +70,8 @@
                 countryChartData: [],
                 chartOptions: {},
                 countryPeriod: 'all',
+                showDaily: true,
+                error: null
             }
         },
         computed: {
@@ -85,7 +95,23 @@
                 return a==b?'warning':'info'
             },
             getCountryData(){
-                let tempChart = [], tempTable = [], options = {}
+                this.error = null
+                let tempTable = [], 
+                    tempChart = [
+                            { name: "cases", data: [] },
+                            { name: "deaths", data: [] },
+                            { name: "recovered", data: [] },
+                        ], 
+                    options = {
+                            chart: { height: 500, type: 'line', zoom: { enabled: false } },
+                            colors: ['#17a2b8', '#dc3545', '#28a745'],
+                            // colors: ['#2d73f5', '#ff6358', '#78d237'],
+                            dataLabels: { enabled: false },
+                            stroke: { curve: 'smooth' },
+                            // title: { text: 'Product Trends by Month', align: 'center' },
+                            grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
+                            xaxis: { categories: [], tickAmount: 10, }
+                        }
                 let link ='https://corona.lmao.ninja/v2/historical/'
                 link+=this.chosenCountry.country+'?lastdays='+this.countryPeriod
                 axios
@@ -102,30 +128,7 @@
                                     "deaths": countryCases.deaths[date],
                                     "recovered": countryCases.recovered[date]
                                 })
-                            }
-                        })
 
-                        // vue chart js
-                        options = {
-                            chart: { height: 500, type: 'line', zoom: { enabled: false } },
-                            colors: ['#17a2b8', '#dc3545', '#28a745'],
-                            // colors: ['#2d73f5', '#ff6358', '#78d237'],
-                            dataLabels: { enabled: false },
-                            stroke: { curve: 'smooth' },
-                            // title: { text: 'Product Trends by Month', align: 'center' },
-                            grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
-                            xaxis: { categories: [], tickAmount: 10, }
-                        }
-
-                        tempChart = [
-                            { name: "cases", data: [] },
-                            { name: "deaths", data: [] },
-                            { name: "recovered", data: [] },
-                        ]
-                        
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            //to ignore first records with no data
-                            if(countryCases.cases[date]||countryCases.deaths[date]||countryCases.recovered[date]){
                                 options.xaxis.categories.push(date)
                                 tempChart[0].data.push(countryCases.cases[date])
                                 tempChart[1].data.push(countryCases.deaths[date])
@@ -138,8 +141,8 @@
                         this.countryTableData = tempTable
                     })
                     .catch(err => {
-                        console.log(JSON.stringify(err))
-                        // alert(err); 
+                        this.error = 'Country not found or doesn\'t have any historical data'
+                        console.log(err); 
                         //Country not found or doesn't have any historical data (Mont...)
                     })
             }
