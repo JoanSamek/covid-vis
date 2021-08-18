@@ -84,6 +84,9 @@
             },
             countryPeriod(current, previous){
                 if(current!=previous) this.getCountryData()
+            },
+            showDaily(current, previous){
+                if(current!=previous) this.getCountryData()
             }
         },
         methods: {
@@ -107,8 +110,7 @@
                             colors: ['#17a2b8', '#dc3545', '#28a745'],
                             // colors: ['#2d73f5', '#ff6358', '#78d237'],
                             dataLabels: { enabled: false },
-                            stroke: { curve: 'smooth' },
-                            // title: { text: 'Product Trends by Month', align: 'center' },
+                            stroke: { curve: 'smooth', width: 1.5 },
                             grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
                             xaxis: { categories: [], tickAmount: 10, }
                         }
@@ -118,21 +120,28 @@
                     .get(link)
                     .then(response => {
                         let countryCases = response.data.timeline
-                        
+                        let tempData = [], prev = [0,0,0]
                         Object.keys(countryCases.cases).forEach(date =>{
                             //to ignore first records with no data
                             if(countryCases.cases[date]||countryCases.deaths[date]||countryCases.recovered[date]){
+                                tempData = [countryCases.cases[date], countryCases.deaths[date], countryCases.recovered[date]]
+                                if(tempData[2]==0) tempData[2]=prev[2]
+                                if(this.showDaily) {
+                                    tempData = tempData.map(function(v,i) { return (v - prev[i]); });
+                                }
                                 tempTable.push({
                                     "date": date,
-                                    "cases": countryCases.cases[date],
-                                    "deaths": countryCases.deaths[date],
-                                    "recovered": countryCases.recovered[date]
+                                    "cases": tempData[0],
+                                    "deaths": tempData[1],
+                                    "recovered": tempData[2]
                                 })
 
                                 options.xaxis.categories.push(date)
-                                tempChart[0].data.push(countryCases.cases[date])
-                                tempChart[1].data.push(countryCases.deaths[date])
-                                tempChart[2].data.push(countryCases.recovered[date])
+                                tempChart[0].data.push(tempData[0])
+                                tempChart[1].data.push(tempData[1])
+                                tempChart[2].data.push(tempData[2])
+                                prev = [countryCases.cases[date], countryCases.deaths[date], countryCases.recovered[date]]
+                                if(prev[2]==0) prev[2]=tempData[2]
                             }
                         })
                         
