@@ -48,10 +48,11 @@
 
     export default {
         name: 'World',
-        props: ['worldCases', 'worldTable'],
+        props: ['worldCases'],
         data(){
             return{
                 //WORLD TAB
+                worldTable: [],
                 worldVariant: 'cases',
             }
         },
@@ -80,6 +81,10 @@
         },
         created(){
             window.scrollTo(0,0)
+            let tableCols = ['country','cases','todayCases','casesPerOneMillion','deaths','todayDeaths','deathsPerOneMillion','tests','testsPerOneMillion','recovered','active','critical']
+            tableCols.forEach(column => {
+                this.worldTable.push({'key': column, 'sortable': true})
+            })
         },
         components:{
             MapChart,

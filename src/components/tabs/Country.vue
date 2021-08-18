@@ -62,10 +62,11 @@
 
     export default {
         name: 'Country',
-        props: ['chosenCountry', 'countryTable'],
+        props: ['chosenCountry'],
         data(){
             return{
                 //COUNTRY TAB
+                countryTable: [],
                 countryTableData:[],
                 countryChartData: [],
                 chartOptions: {},
@@ -158,6 +159,11 @@
         },
         created(){
             window.scrollTo(0,0)
+            //country table thead
+            let tableCols = ['date', 'cases', 'deaths','recovered'] 
+            tableCols.forEach(column => {
+                this.countryTable.push({'key': column, 'sortable': true})
+            })
         },
         components:{
         }
