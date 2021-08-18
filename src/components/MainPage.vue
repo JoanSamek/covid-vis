@@ -210,14 +210,18 @@
                     .get(link)
                     .then(response => {
                         let countryCases = response.data.timeline
-
+                        
                         Object.keys(countryCases.cases).forEach(date =>{
-                            tempTable.push({
-                                "date": date,
-                                "cases": countryCases.cases[date],
-                                "deaths": countryCases.deaths[date],
-                                "recovered": countryCases.recovered[date]
-                            })
+                            //to ignore first records with no data
+                            if(countryCases.cases[date]||countryCases.deaths[date]||countryCases.recovered[date]){
+                                tempTable.push({
+                                    "date": date,
+                                    "cases": countryCases.cases[date],
+                                    "deaths": countryCases.deaths[date],
+                                    "recovered": countryCases.recovered[date]
+                                })
+                            }
+                            
                         })
 
                         // vue chart js
@@ -239,10 +243,13 @@
                         ]
                         
                         Object.keys(countryCases.cases).forEach(date =>{
-                            options.xaxis.categories.push(date)
-                            tempChart[0].data.push(countryCases.cases[date])
-                            tempChart[1].data.push(countryCases.deaths[date])
-                            tempChart[2].data.push(countryCases.recovered[date])
+                            //to ignore first records with no data
+                            if(countryCases.cases[date]||countryCases.deaths[date]||countryCases.recovered[date]){
+                                options.xaxis.categories.push(date)
+                                tempChart[0].data.push(countryCases.cases[date])
+                                tempChart[1].data.push(countryCases.deaths[date])
+                                tempChart[2].data.push(countryCases.recovered[date])
+                            }
                         })
                         
                         this.chartOptions = options
