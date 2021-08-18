@@ -78,14 +78,14 @@
                                 </b-container>
                             </b-jumbotron><br><br>
                             <b-button-group>
-                                <b-button variant='warning'>All</b-button>
-                                <b-button variant='info'>Last 30 days</b-button>
-                                <b-button variant='info'>Last 7 days</b-button>
+                                <b-button :variant='getBtnVariant("all", countryPeriod)' @click='countryPeriod="all"'>All</b-button>
+                                <b-button :variant='getBtnVariant("30", countryPeriod)' @click='countryPeriod="30"'>Last 30 days</b-button>
+                                <b-button :variant='getBtnVariant("7", countryPeriod)' @click='countryPeriod="7"'>Last 7 days</b-button>
                             </b-button-group>
                             <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-col>
-                        <b-col cols=7>
-                            
+                        <b-col cols=7 >
+                            <apexchart type="line" height="500" :options="chartOptions" :series="countryChartData" style='margin-left: 20px;'></apexchart>
                         </b-col>
                     </b-row>
                 </b-container>
@@ -151,19 +151,9 @@
                 chosenCountry: '',
                 countryTableData:[],
                 countryTable: [],
-                countryChartData: {'labels':[], "datasets":[]},
-                options: {
-                    scales: {
-                        yAxes: [
-                            {
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
+                countryChartData: [],
+                chartOptions: {},
+                countryPeriod: 'all',
                 //CORRELATION TAB
                 //RAPORT TAB
                 raportFile:['Total cases world map', 'Spain - description card', 'Spain - last 30 days chart', 'Total tests world map']
@@ -184,48 +174,11 @@
         },
         watch:{
             chosenCountry(){
-                let temp = {'labels':[], "datasets":[]}, tempTable = []
-                this.countryChartData = temp
-                let link ='https://corona.lmao.ninja/v2/historical/'
-                link+=this.chosenCountry.country+'?lastdays=all'
-                axios
-                    .get(link)
-                    .then(response => {
-                        let countryCases = response.data.timeline
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            tempTable.push({
-                                "date": date,
-                                "cases": countryCases.cases[date],
-                                "deaths": countryCases.deaths[date],
-                                "recovered": countryCases.recovered[date]
-                            })
-                        })
-                        // vue chart js
-                        temp = {"labels": Object.keys(countryCases.cases), "datasets":[
-                            {label:'cases', borderColor: "#17a2b8", fill: false, data: []},
-                            {label:'deaths', borderColor: "#dc3545", fill: false, data: []},
-                            {label:'recovered', borderColor: "#ffc107", fill: false, data: []}
-                        ]}
-                        Object.keys(countryCases.cases).forEach(date =>{
-                            temp.datasets[0].data.push(countryCases.cases[date])
-                            temp.datasets[1].data.push(countryCases.deaths[date])
-                            temp.datasets[2].data.push(countryCases.recovered[date])
-                        })
-                        // VueChartkick
-                            // temp = [
-                            //     {"name": 'cases', "data": countryCases.cases },
-                            //     {"name": 'deaths', "data": countryCases.deaths },
-                            //     {"name": 'recovered', "data": countryCases.recovered },
-                            // ]
-                        this.countryChartData = temp
-                        this.countryTableData = tempTable
-                    })
-                    .catch(err => {
-                        console.log(JSON.stringify(err.response.data.message))
-                        // alert(err); 
-                        //Country not found or doesn't have any historical data (Mont...)
-                    })
-
+                this.countryPeriod = 'all'
+                this.getCountryData()
+            },
+            countryPeriod(current, previous){
+                if(current!=previous) this.getCountryData()
             }
         },
         methods: {
@@ -237,6 +190,9 @@
                 const current = new Date()
                 return current.getDate()+'/'+current.getMonth()+'/'+current.getFullYear()
             },
+            getBtnVariant(a,b){
+                return a==b?'warning':'info'
+            },
             getFilterBtnVariant(name){
                 if(this.worldVariant.toLowerCase().includes(name)) return 'warning'
                 return 'info'
@@ -245,8 +201,60 @@
                 this.chosenCountry = this.worldCases.find(element => element.countryInfo.iso2 == country.code)
                 this.tabIndex = 1 
                 window.scrollTo(0,0)
+            },
+            getCountryData(){
+                let tempChart = [], tempTable = [], options = {}
+                let link ='https://corona.lmao.ninja/v2/historical/'
+                link+=this.chosenCountry.country+'?lastdays='+this.countryPeriod
+                axios
+                    .get(link)
+                    .then(response => {
+                        let countryCases = response.data.timeline
+
+                        Object.keys(countryCases.cases).forEach(date =>{
+                            tempTable.push({
+                                "date": date,
+                                "cases": countryCases.cases[date],
+                                "deaths": countryCases.deaths[date],
+                                "recovered": countryCases.recovered[date]
+                            })
+                        })
+
+                        // vue chart js
+                        options = {
+                            chart: { height: 500, type: 'line', zoom: { enabled: false } },
+                            colors: ['#17a2b8', '#dc3545', '#28a745'],
+                            // colors: ['#2d73f5', '#ff6358', '#78d237'],
+                            dataLabels: { enabled: false },
+                            stroke: { curve: 'smooth' },
+                            title: { text: 'Product Trends by Month', align: 'center' },
+                            grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
+                            xaxis: { categories: [], tickAmount: 10, }
+                        }
+
+                        tempChart = [
+                            { name: "cases", data: [] },
+                            { name: "deaths", data: [] },
+                            { name: "recovered", data: [] },
+                        ]
+                        
+                        Object.keys(countryCases.cases).forEach(date =>{
+                            options.xaxis.categories.push(date)
+                            tempChart[0].data.push(countryCases.cases[date])
+                            tempChart[1].data.push(countryCases.deaths[date])
+                            tempChart[2].data.push(countryCases.recovered[date])
+                        })
+                        
+                        this.chartOptions = options
+                        this.countryChartData = tempChart
+                        this.countryTableData = tempTable
+                    })
+                    .catch(err => {
+                        console.log(JSON.stringify(err))
+                        // alert(err); 
+                        //Country not found or doesn't have any historical data (Mont...)
+                    })
             }
-            
         },
         created(){
             //api query
