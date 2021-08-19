@@ -3,7 +3,7 @@
         <b-container style='width:100%; max-width: 100%;' v-if='error' class="text-center">
                 {{error}}
         </b-container>
-        <b-container style='width:70%' v-else>
+        <b-container md=12 v-else>
             <b-row>
                 <b-col cols=6>
                     Covid-19 indicator
@@ -15,9 +15,11 @@
                 </b-col>
             </b-row>
         </b-container>
-        <b-container style='width:100%' v-if='!error'>
-            <b-row>
+        <br>
+        <b-container style='width:100%; max-width: 100%;' v-if='!error&&covidIndicator&&countryIndicator'>
+            <b-row v-if='!loading'>
                 <b-col cols=6>
+                    <apexchart type="line" height="500" :options="chartOptions" :series="chartData"></apexchart>
                 </b-col>
                 <b-col cols=6 >
                 </b-col>
@@ -33,13 +35,16 @@
 <script>
     export default {
         name: 'Correlation',
-        props: ['worldIndicators'],
+        props: ['worldIndicators', 'worldCases'],
         data(){
             return{
                 covidOptions: null,
                 countryOptions: null,
                 covidIndicator: null,
                 countryIndicator: null,
+                chartOptions: {},
+                chartData: [],
+                loading: false,
                 error: null
             }
         },
@@ -47,10 +52,67 @@
             
         },
         watch:{
-            
+            covidIndicator(val){
+                if(this.countryIndicator&&val) this.getChartData()
+            },
+            countryIndicator(val){
+                if(this.covidIndicator&&val) this.getChartData()
+            }
         },
         methods: {
-            
+            getChartData(){
+                this.loading = true
+                console.log(JSON.stringify(this.worldIndicator))
+                let dataScatter = [], countryInfo = {}, countryVal = 0, dataTrend=[]
+                this.worldCases.forEach(country => {
+                    if(country.countryInfo.iso2){
+                        countryInfo = this.worldIndicators.find(element => element.alpha2Code == country.countryInfo.iso2);
+                        switch(this.countryIndicator){
+                            case 'population':
+                            case 'gini':
+                                countryVal = countryInfo[this.countryIndicator]
+                                break;
+                            case 'density':
+                                countryVal = Number((countryInfo.population/countryInfo.area).toFixed(2))
+                                break;
+                            case 'gdp':
+                                countryVal = 0
+                                break;
+                        }
+                        dataScatter.push({
+                            x: country[this.covidIndicator], y: countryVal
+                        })
+                        dataTrend.push({
+                            x: 0, y: 0
+                        })
+                    }
+                });
+
+                console.log(JSON.stringify(countryInfo))
+                this.chartData = [
+                    {
+                        name: 'Points',
+                        type: 'scatter',
+                        data: dataScatter
+                    }, {
+                        name: 'Line',
+                        type: 'line',
+                        data: dataTrend
+                    }
+                ]
+                this.chartOptions = {
+                    chart: {
+                        height: 500,
+                        type: 'line',
+                    },
+                    fill: { type:'solid' },
+                    markers: { size: [6, 0] },
+                    tooltip: { shared: false, intersect: true, },
+                    legend: { show: false },
+                    xaxis: { type: 'numeric', tickAmount: 12 }
+                }
+                this.loading = false
+            }
         },
         created(){
             window.scrollTo(0,0)

@@ -10,7 +10,7 @@
                 <Country v-if='chosenCountry' :chosenCountry='chosenCountry' />
             </b-tab>
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>
-                <Correlation :worldIndicators='worldIndicators' />
+                <Correlation :worldIndicators='worldIndicators'  :worldCases='worldCases'/>
                 <br>
                 <h4 style='width:1100px; margin:auto;text-align: justify;'>Strona w trakcie rozbudowy: zakładka pozwalajaca na wybranie czynnika (PKB, gini, populacja, gęstość zaludnienia, etc.) 
                     i generująca wykresy porównawcze (przykładowo punktowe); możliwość generacji linii trendu oraz wyliczenie jej wzoru; 
@@ -96,7 +96,7 @@
             axios
                 .get('http://restcountries.eu/rest/v2/all?fields=name;alpha2Code;population;area;gini')
                 .then(response => {
-                    console.log(JSON.stringify(response))
+                    this.worldIndicators = response.data
                 })
                 .catch(err => {
                     this.error = 'Data error'
