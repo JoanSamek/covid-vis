@@ -33,6 +33,8 @@
 </template>
 
 <script>
+    import createTrend from 'trendline';
+    
     export default {
         name: 'Correlation',
         props: ['worldIndicators', 'worldCases'],
@@ -62,7 +64,6 @@
         methods: {
             getChartData(){
                 this.loading = true
-                console.log(JSON.stringify(this.worldIndicator))
                 let dataScatter = [], countryInfo = {}, countryVal = 0, dataTrend=[]
                 this.worldCases.forEach(country => {
                     if(country.countryInfo.iso2){
@@ -79,16 +80,23 @@
                                 countryVal = 0
                                 break;
                         }
-                        dataScatter.push({
-                            x: country[this.covidIndicator], y: countryVal
-                        })
-                        dataTrend.push({
-                            x: 0, y: 0
-                        })
+                        if(countryVal&&country[this.covidIndicator]){
+                            dataScatter.push({
+                                x: country[this.covidIndicator], y: countryVal
+                            })
+                        }
                     }
                 });
+                dataScatter.sort((a,b) => { return a.x-b.x })
+                const trend = createTrend(dataScatter, 'x', 'y');
 
-                console.log(JSON.stringify(countryInfo))
+                dataScatter.forEach(element => {
+                    dataTrend.push({
+                        x: element.x,
+                        y: trend.calcY(element.x)
+                    })
+                })
+
                 this.chartData = [
                     {
                         name: 'Points',
@@ -109,7 +117,16 @@
                     markers: { size: [6, 0] },
                     tooltip: { shared: false, intersect: true, },
                     legend: { show: false },
-                    xaxis: { type: 'numeric', tickAmount: 12 }
+                    xaxis: { type: 'numeric', tickAmount: 12, labels: {
+                        formatter: function(value) {
+                            return value.toFixed()
+                        }
+                    } },
+                    yaxis: { type: 'numeric', tickAmount: 12, labels: {
+                        formatter: function(value) {
+                            return value.toFixed()
+                        }
+                    } }
                 }
                 this.loading = false
             }
