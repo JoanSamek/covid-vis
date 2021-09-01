@@ -115,7 +115,7 @@
                             grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
                             xaxis: { categories: [], tickAmount: 10, }
                         }
-                let link ='https://corona.lmao.ninja/v2/historical/'
+                let link ='https://disease.sh/v3/covid-19/historical/'
                 link+=this.chosenCountry.country+'?lastdays='+this.countryPeriod
                 axios
                     .get(link)

@@ -22,6 +22,11 @@
                     <apexchart type="line" height="500" :options="chartOptions" :series="chartData"></apexchart>
                 </b-col>
                 <b-col cols=6 >
+                    <b-card bg-variant="light" header="Regression analytics" class="text-center">
+                        <b-card-text>
+                            <span v-for='(param, i) in Object.keys(statistic)' :key='i'>{{param}}: {{statistic[param]}}<br></span> 
+                        </b-card-text>
+                    </b-card>
                 </b-col>
             </b-row>
         </b-container>
@@ -47,7 +52,8 @@
                 chartOptions: {},
                 chartData: [],
                 loading: false,
-                error: null
+                error: null,
+                statistic: {}
             }
         },
         computed: {
@@ -89,7 +95,7 @@
                 });
                 dataScatter.sort((a,b) => { return a.x-b.x })
                 const trend = createTrend(dataScatter, 'x', 'y');
-
+                
                 dataScatter.forEach(element => {
                     dataTrend.push({
                         x: element.x,
@@ -108,6 +114,9 @@
                         data: dataTrend
                     }
                 ]
+
+                let xtitle = this.covidOptions.find(element => element.value==this.covidIndicator)['text']
+                let ytitle = this.countryOptions.find(element => element.value==this.countryIndicator)['text']
                 this.chartOptions = {
                     chart: {
                         height: 500,
@@ -120,16 +129,53 @@
                     xaxis: { type: 'numeric', tickAmount: 12, labels: {
                         formatter: function(value) {
                             return value.toFixed()
+                        }},
+                        title:{
+                            text: xtitle
                         }
-                    } },
+                     },
                     yaxis: { type: 'numeric', tickAmount: 12, labels: {
                         formatter: function(value) {
                             return value.toFixed()
+                        }},
+                        title:{
+                            text: ytitle
                         }
-                    } }
+                     }
                 }
+                this.getStatData(trend, dataScatter)
                 this.loading = false
-            }
+            },
+            getStatData(trend, data){
+                //TRENDLINE
+                let equation = ''
+                if(trend.slope.toFixed(2)!=0) equation += trend.slope.toFixed(2)+'x'
+                else if( Math.abs(trend.slope.toPrecision(1))>0.00001) equation += trend.slope.toPrecision(2)+'x'
+                if(equation!=''){
+                    if(trend.yStart.toFixed(2)<0) equation += ' - '+ Math.abs(trend.yStart).toFixed(2)
+                    else if(trend.yStart.toFixed(2)>0) equation += ' + '+ trend.yStart.toFixed(2)
+                }else{
+                    equation = trend.yStart
+                }
+                equation = 'y = '+equation
+                this.statistic['Trendline'] = equation
+                //PEARSON
+                this.statistic['Pearson correlation coefficient'] = this.calculatePearson(data).toFixed(4)
+                this.statistic['Coefficient of determination'] = (this.statistic['Pearson correlation coefficient']**2).toFixed(4)
+
+            },
+            calculatePearson(data){
+                let x = [], y = []
+                data.forEach(pointData=>{
+                    x.push(pointData.x)
+                    y.push(pointData.y)
+                })
+                let promedio = (lista) => { return lista.reduce((s, a) => s + a, 0) / lista.length };
+                let n = x.length, prom_x = promedio(x) , prom_y = promedio(y);
+                return (x.map( (e, i) => { return {x:e, y:y[i]} }).reduce( (s, a) => s + a.x * a.y, 0) - n * prom_x * prom_y) / 
+                ((Math.sqrt(x.reduce( (s, a) => (s + a * a) , 0) - n * prom_x * prom_x)) *
+                (Math.sqrt(y.reduce( (s, a) => (s + a * a) , 0) - n * prom_y * prom_y)));
+            } 
         },
         created(){
             window.scrollTo(0,0)

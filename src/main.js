@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import App from './App.vue'
-import store from './store'
 Vue.config.productionTip = false
 
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
@@ -9,9 +8,6 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 // import './app.scss'
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
-
-import Vuex from 'vuex'
-Vue.use(Vuex)
 
 import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
@@ -22,7 +18,6 @@ Vue.use(VueApexCharts)
 Vue.component('apexchart', VueApexCharts)
 
 new Vue({
-  store,
   render: h => h(App),
   components: { App }
 }).$mount('#app')

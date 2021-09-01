@@ -89,7 +89,7 @@
         created(){
             //get world cases data
             axios
-                .get('https://corona.lmao.ninja/v2/countries?yesterday')
+                .get('https://disease.sh/v3/covid-19/countries')
                 .then(response => {this.worldCases = response.data})
             
             //get world countries data
