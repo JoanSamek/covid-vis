@@ -38,8 +38,6 @@
 </template>
 
 <script>
-    import createTrend from 'trendline';
-    
     export default {
         name: 'Correlation',
         props: ['worldIndicators', 'worldCases'],
@@ -94,12 +92,22 @@
                     }
                 });
                 dataScatter.sort((a,b) => { return a.x-b.x })
-                const trend = createTrend(dataScatter, 'x', 'y');
-                
+
+                var Statistics = require('/node_modules/statistics.js/statistics.js');
+                var testVars = {
+                    x: 'metric',
+                    y: 'metric'
+                };
+                var stats = new Statistics(dataScatter, testVars);
+                var regression = stats.linearRegression('x', 'y');
+                const calcY = (x) => {
+                    return regression.regressionFirst.beta2*x+regression.regressionFirst.beta1
+                }
+
                 dataScatter.forEach(element => {
                     dataTrend.push({
                         x: element.x,
-                        y: trend.calcY(element.x)
+                        y: calcY(element.x)
                     })
                 })
 
@@ -143,39 +151,40 @@
                         }
                      }
                 }
-                this.getStatData(trend, dataScatter)
+                this.getStatData(dataScatter, regression)
                 this.loading = false
             },
-            getStatData(trend, data){
+            getStatData(data, regression){
                 //TRENDLINE
-                let equation = ''
-                if(trend.slope.toFixed(2)!=0) equation += trend.slope.toFixed(2)+'x'
-                else if( Math.abs(trend.slope.toPrecision(1))>0.00001) equation += trend.slope.toPrecision(2)+'x'
+                let a = regression.regressionFirst.beta2, b = regression.regressionFirst.beta1, equation = ''
+                if(a.toFixed(2)!=0) equation += a.toFixed(2)+'x'
+                else if( Math.abs(a.toPrecision(1))>0.00001) equation += a.toPrecision(2)+'x'
                 if(equation!=''){
-                    if(trend.yStart.toFixed(2)<0) equation += ' - '+ Math.abs(trend.yStart).toFixed(2)
-                    else if(trend.yStart.toFixed(2)>0) equation += ' + '+ trend.yStart.toFixed(2)
+                    if(b.toFixed(2)<0) equation += ' - '+ Math.abs(b).toFixed(2)
+                    else if(b.toFixed(2)>0) equation += ' + '+ b.toFixed(2)
                 }else{
-                    equation = trend.yStart
+                    equation = b.toFixed(2)
                 }
                 equation = 'y = '+equation
                 this.statistic['Trendline'] = equation
                 //PEARSON
-                this.statistic['Pearson correlation coefficient'] = this.calculatePearson(data).toFixed(4)
-                this.statistic['Coefficient of determination'] = (this.statistic['Pearson correlation coefficient']**2).toFixed(4)
+                this.statistic['Pearson correlation coefficient'] = regression.correlationCoefficient.toFixed(4)
+                this.statistic['Coefficient of determination'] = regression.coefficientOfDetermination.toFixed(4)
+                this.statistic['Phi coefficient'] = regression.phi.toFixed(4)
 
             },
-            calculatePearson(data){
-                let x = [], y = []
-                data.forEach(pointData=>{
-                    x.push(pointData.x)
-                    y.push(pointData.y)
-                })
-                let promedio = (lista) => { return lista.reduce((s, a) => s + a, 0) / lista.length };
-                let n = x.length, prom_x = promedio(x) , prom_y = promedio(y);
-                return (x.map( (e, i) => { return {x:e, y:y[i]} }).reduce( (s, a) => s + a.x * a.y, 0) - n * prom_x * prom_y) / 
-                ((Math.sqrt(x.reduce( (s, a) => (s + a * a) , 0) - n * prom_x * prom_x)) *
-                (Math.sqrt(y.reduce( (s, a) => (s + a * a) , 0) - n * prom_y * prom_y)));
-            } 
+            // calculatePearson(data){
+            //     let x = [], y = []
+            //     data.forEach(pointData=>{
+            //         x.push(pointData.x)
+            //         y.push(pointData.y)
+            //     })
+            //     let promedio = (lista) => { return lista.reduce((s, a) => s + a, 0) / lista.length };
+            //     let n = x.length, prom_x = promedio(x) , prom_y = promedio(y);
+            //     return (x.map( (e, i) => { return {x:e, y:y[i]} }).reduce( (s, a) => s + a.x * a.y, 0) - n * prom_x * prom_y) / 
+            //     ((Math.sqrt(x.reduce( (s, a) => (s + a * a) , 0) - n * prom_x * prom_x)) *
+            //     (Math.sqrt(y.reduce( (s, a) => (s + a * a) , 0) - n * prom_y * prom_y)));
+            // } 
         },
         created(){
             window.scrollTo(0,0)
