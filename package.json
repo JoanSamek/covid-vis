@@ -13,6 +13,7 @@
     "bootstrap-vue": "^2.21.2",
     "chart.js": "2",
     "core-js": "^3.6.5",
+    "csv-parser": "^3.0.0",
     "sass-loader": "^12.1.0",
     "statistics.js": "^1.0.0",
     "trendline": "^0.3.1",

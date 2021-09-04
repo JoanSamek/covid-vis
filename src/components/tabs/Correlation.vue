@@ -22,10 +22,11 @@
                     <apexchart type="line" height="500" :options="chartOptions" :series="chartData"></apexchart>
                 </b-col>
                 <b-col cols=6 >
-                    <b-card bg-variant="light" header="Regression analytics" class="text-center">
+                    <b-card bg-variant="light" class="text-center">
                         <b-card-text>
-                            <span v-for='(param, i) in Object.keys(statistic)' :key='i'>{{param}}: {{statistic[param]}}<br></span> 
+                           <h4>Regression and correlation</h4>
                         </b-card-text>
+                        <b-table stacked :items="[statistic]"></b-table>
                     </b-card>
                 </b-col>
             </b-row>
@@ -40,7 +41,7 @@
 <script>
     export default {
         name: 'Correlation',
-        props: ['worldIndicators', 'worldCases'],
+        props: ['worldIndicators', 'worldCases', 'gdp', 'gdpPerCapita'],
         data(){
             return{
                 covidOptions: null,
@@ -51,7 +52,17 @@
                 chartData: [],
                 loading: false,
                 error: null,
-                statistic: {}
+                statistic: {},
+                statsNorm: {
+                    "Trendline": null, 
+                    "Pearson correlation coefficient": '<-1, 1>', 
+                    "Coefficient of determination (R squared)": '<0, 1>', 
+                    "Phi coefficient": "<0°, 90°>", 
+                    "Covariance": '<-1, 1>', 
+                    "Goodman and Kruskal's Gamma": '<-1, 1>', 
+                    "T statistic":"-", 
+                    "Spearman's rank correlation": '<-1, 1>'
+                }
             }
         },
         computed: {
@@ -81,7 +92,12 @@
                                 countryVal = Number((countryInfo.population/countryInfo.area).toFixed(2))
                                 break;
                             case 'gdp':
-                                countryVal = 0
+                                if(this.gdp[country.countryInfo.iso3]) countryVal = this.gdp[country.countryInfo.iso3].value
+                                else countryVal = null
+                                break;
+                            case 'gdpPerCapita':
+                                if(this.gdpPerCapita[country.countryInfo.iso3]) countryVal = this.gdpPerCapita[country.countryInfo.iso3].value
+                                else countryVal = null
                                 break;
                         }
                         if(countryVal&&country[this.covidIndicator]){
@@ -151,10 +167,10 @@
                         }
                      }
                 }
-                this.getStatData(dataScatter, regression)
+                this.getStatData(stats, regression)
                 this.loading = false
             },
-            getStatData(data, regression){
+            getStatData(stats, regression){
                 //TRENDLINE
                 let a = regression.regressionFirst.beta2, b = regression.regressionFirst.beta1, equation = ''
                 if(a.toFixed(2)!=0) equation += a.toFixed(2)+'x'
@@ -168,10 +184,15 @@
                 equation = 'y = '+equation
                 this.statistic['Trendline'] = equation
                 //PEARSON
-                this.statistic['Pearson correlation coefficient'] = regression.correlationCoefficient.toFixed(4)
-                this.statistic['Coefficient of determination'] = regression.coefficientOfDetermination.toFixed(4)
-                this.statistic['Phi coefficient'] = regression.phi.toFixed(4)
-
+                this.statistic['Pearson correlation coefficient <-1, 1>'] = regression.correlationCoefficient.toFixed(4)
+                this.statistic['Coefficient of determination (R squared) <0, 1>'] = regression.coefficientOfDetermination.toFixed(4)
+                this.statistic['Phi coefficient <0°, 90°>'] = regression.phi.toFixed(4)
+                this.statistic['Covariance <-1, 1>'] = stats.covariance('x','y').covariance.toFixed(4)
+                let gKG = stats.goodmanKruskalsGamma('x','y')
+                this.statistic["Goodman and Kruskal's Gamma <-1, 1>"] = gKG.gamma.toFixed(4)
+                this.statistic["T statistic"] = gKG.tStatistic.toFixed(4)
+                this.statistic["Spearman's rank correlation <-1, 1>"] = stats.spearmansRho('x','y').rho.toFixed(4)
+                console.log(JSON.stringify(Object.keys(this.statistic)))
             },
             // calculatePearson(data){
             //     let x = [], y = []
@@ -206,6 +227,7 @@
                 {value: 'density', text: 'Population density'},
                 {value: 'gini', text: 'Gini coefficient'},
                 {value: 'gdp', text: 'Gross domestic product (GDP)'},
+                {value: 'gdpPerCapita', text: 'Gross domestic product per capita (GDP per capita)'},
             ]
         },
         components:{

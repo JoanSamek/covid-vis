@@ -10,12 +10,7 @@
                 <Country v-if='chosenCountry' :chosenCountry='chosenCountry' />
             </b-tab>
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>
-                <Correlation :worldIndicators='worldIndicators'  :worldCases='worldCases'/>
-                <br>
-                <h4 style='width:1100px; margin:auto;text-align: justify;'>Strona w trakcie rozbudowy: zakładka pozwalajaca na wybranie czynnika (PKB, gini, populacja, gęstość zaludnienia, etc.) 
-                    i generująca wykresy porównawcze (przykładowo punktowe); możliwość generacji linii trendu oraz wyliczenie jej wzoru; 
-                    obliczenie współczynnika korelacji oraz r kwadrat; inne statystyki; tabela z dostepnymi danymi do pobrania.
-                </h4>
+                <Correlation :worldIndicators='worldIndicators'  :worldCases='worldCases' :gdp='gdp' :gdpPerCapita='gdpPerCapita'/>
             </b-tab>
             <b-tab title='Raport' title-link-class='text-info'><br>
                 <b-container>
@@ -66,6 +61,8 @@
                 chosenCountry: '',
                 //CORRELATION TAB
                 worldIndicators: [],
+                gdp: {},
+                gdpPerCapita: {},
                 //RAPORT TAB
                 raportFile:['Total cases world map', 'Spain - description card', 'Spain - last 30 days chart', 'Total tests world map']
             }
@@ -84,6 +81,27 @@
                 this.chosenCountry=country; 
                 this.tabIndex=1
                 window.scrollTo(0,0)
+            },
+            getNewestValues(data){
+                let countriesDict = {}
+                data.forEach(item =>{
+                    if(item.value){
+                        if(countriesDict[item.countryiso3code] != undefined){
+                            if(countriesDict[item.countryiso3code].year<Number(item.date)){
+                                countriesDict[item.countryiso3code] = {
+                                    year: Number(item.date),
+                                    value: item.value
+                                }
+                            }
+                        } else {
+                            countriesDict[item.countryiso3code] = {
+                                year: Number(item.date),
+                                value: item.value
+                            }
+                        }
+                    }
+                })
+                return countriesDict
             }
         },
         created(){
@@ -102,7 +120,28 @@
                     this.error = 'Data error'
                     console.log(err); 
                 })
+            
+            //get gdp
+            axios
+                .get('https://api.worldbank.org/v2/en/country/all/indicator/NY.GDP.MKTP.PP.CD?format=json&per_page=20000&source=2')
+                .then(response => {
+                    this.gdp = this.getNewestValues(response.data[1])
+                })
+                .catch(err => {
+                    this.error = 'Data error'
+                    console.log(err); 
+                })
+            axios
+                .get('https://api.worldbank.org/v2/en/country/all/indicator/NY.GDP.PCAP.CD?format=json&per_page=20000&source=2')
+                .then(response => {
+                    this.gdpPerCapita = this.getNewestValues(response.data[1])
+                })
+                .catch(err => {
+                    this.error = 'Data error'
+                    console.log(err); 
+                })
         },
+
         components:{
             World,
             Country,
