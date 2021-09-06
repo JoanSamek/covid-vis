@@ -3,6 +3,7 @@
         <b-container>
             <b-row class='text-center'>
                 <b-col cols=11>
+                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: 0px; right: 20px; ' class='h1 border rounded p-1 bg-warning'></b-icon>
                     <MapChart v-if='worldMap'
                         :countryData='worldMap'  
                         highColor="#ff0000"
@@ -32,14 +33,16 @@
                         <b-button :variant='getFilterBtnVariant("active")' @click='worldVariant="active"'>Active</b-button>
                         <b-button :variant='getFilterBtnVariant("critical")' @click='worldVariant="critical"'>Critical</b-button>
                     </b-button-group><br><br>
-                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer;' class='h1 border rounded p-1 bg-warning'></b-icon>
                 </b-col>
             </b-row>
         </b-container><br>
-        <div>
-            <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; float:right;' class='h2'></b-icon>
-            <b-table striped :items='worldCases' :fields='worldTable'></b-table>
-        </div>
+        <b-container style='width:100%; max-width: 100%; '>
+            <b-col cols=12>
+                <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; position: absolute; top: -40px; right: 50px;' class='h2'></b-icon>
+                <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: -44px; right: 0px; ' class='h1 border rounded p-1 bg-warning'></b-icon>
+                <b-table striped :items='worldCases' :fields='worldTable'></b-table>
+            </b-col>
+        </b-container>
     </div>
 </template>
 

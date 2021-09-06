@@ -17,7 +17,8 @@
                                     <p>Population: {{chosenCountry.population}}</p>
                                 </b-col>
                                 <b-col>
-                                <hr class='my-4'>
+                                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: -25px; right: 0px;' class='h1 border rounded p-1 bg-warning'></b-icon>
+                                    <hr class='my-4'>
                                     <p style='text-align:left'>
                                         All cases: {{chosenCountry.cases}} ({{chosenCountry.casesPerOneMillion}} per million)<br>
                                         All deaths: {{chosenCountry.deaths}} ({{chosenCountry.deathsPerOneMillion}} per million)<br>
@@ -28,7 +29,6 @@
                                         Today ({{getCurrentDate()}}): {{chosenCountry.todayCases}} cases, {{chosenCountry.todayDeaths}} deaths
                                     </p>
                                     <hr class='my-4'>
-                                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                                 </b-col>
                             </b-row>
                         </b-container>
@@ -43,17 +43,20 @@
                         <b-button :variant='getBtnVariant("30", countryPeriod)' @click='countryPeriod="30"'>Last 30 days</b-button>
                         <b-button :variant='getBtnVariant("7", countryPeriod)' @click='countryPeriod="7"'>Last 7 days</b-button>
                     </b-button-group>
-                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; float:right;' class='h1 border rounded p-1 bg-warning'></b-icon>
                 </b-col>
                 <b-col cols=7 >
+                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: 8px; right: 16px; z-index: 1000;' class='h1 border rounded p-1 bg-warning'></b-icon>
                     <apexchart type="line" height="500" :options="chartOptions" :series="countryChartData" style='margin-left: 20px;'></apexchart>
                 </b-col>
             </b-row>
         </b-container>
-        <div  v-if='countryChartData&&!error'>
-            <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; float:right;' class='h2'></b-icon>
+        <b-container style='width:100%; max-width: 100%; ' v-if='countryChartData&&!error'>
+            <b-col cols=12 style='height:50px;'>
+                <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; position: absolute; bottom: 4px; right: 50px;' class='h2'></b-icon>
+                <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; bottom: 0px; right: 0px; ' class='h1 border rounded p-1 bg-warning'></b-icon>
+            </b-col >
             <b-table striped :items='countryTableData' :fields='countryTable'></b-table>
-        </div>
+        </b-container>
     </div>
 </template>
 
