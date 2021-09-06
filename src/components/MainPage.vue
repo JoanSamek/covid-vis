@@ -5,7 +5,7 @@
                 <World :worldCases='worldCases' @country-details='getCountryDetails' />
             </b-tab>
             <b-tab title='Country' :title-link-class='linkClass(1)'>
-                <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;'></v-select>
+                <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;' placeholder='Please select a country'></v-select>
                 <br>
                 <Country v-if='chosenCountry' :chosenCountry='chosenCountry' />
             </b-tab>
@@ -34,7 +34,6 @@
                         </b-col>
                     </b-row>
                 </b-container>
-                
             </b-tab>
             <template #tabs-end>
                 <li role='presentation' class='nav-item align-self-center h3'>COVID-19 Analytics</li>

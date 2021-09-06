@@ -19,12 +19,14 @@
         <b-container style='width:100%; max-width: 100%;' v-if='!error&&covidIndicator&&countryIndicator'>
             <b-row v-if='!loading'>
                 <b-col cols=6>
+                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position:absolute; top:0px; left: 30px; z-index:1000;' class='h1 border rounded p-1 bg-warning'></b-icon>
                     <apexchart type="line" height="500" :options="chartOptions" :series="chartData"></apexchart>
                 </b-col>
                 <b-col cols=6 >
                     <b-card bg-variant="light" class="text-center">
                         <b-card-text>
                            <h4>Regression and correlation</h4>
+                           <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position:absolute; top:8px; right: 8px;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-card-text>
                         <b-table stacked :items="[statistic]"></b-table>
                     </b-card>
@@ -53,16 +55,6 @@
                 loading: false,
                 error: null,
                 statistic: {},
-                statsNorm: {
-                    "Trendline": null, 
-                    "Pearson correlation coefficient": '<-1, 1>', 
-                    "Coefficient of determination (R squared)": '<0, 1>', 
-                    "Phi coefficient": "<0°, 90°>", 
-                    "Covariance": '<-1, 1>', 
-                    "Goodman and Kruskal's Gamma": '<-1, 1>', 
-                    "T statistic":"-", 
-                    "Spearman's rank correlation": '<-1, 1>'
-                }
             }
         },
         computed: {
@@ -77,9 +69,15 @@
             }
         },
         methods: {
+            valueConvert(val, prec=2) {
+                let result = Number(val).toFixed(prec).toString().split('.')
+                result[0] = result[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ')//.replace(".",",")
+                return result.join('.')
+            },
             getChartData(){
+                let self = this
                 this.loading = true
-                let dataScatter = [], countryInfo = {}, countryVal = 0, dataTrend=[]
+                let dataScatter = [], countryInfo = {}, countryVal = 0, dataTrend=[], countryList = []
                 this.worldCases.forEach(country => {
                     if(country.countryInfo.iso2){
                         countryInfo = this.worldIndicators.find(element => element.alpha2Code == country.countryInfo.iso2);
@@ -104,6 +102,7 @@
                             dataScatter.push({
                                 x: country[this.covidIndicator], y: countryVal
                             })
+                            countryList.push({name:country.country, flag: country.countryInfo.flag})
                         }
                     }
                 });
@@ -141,6 +140,8 @@
 
                 let xtitle = this.covidOptions.find(element => element.value==this.covidIndicator)['text']
                 let ytitle = this.countryOptions.find(element => element.value==this.countryIndicator)['text']
+                let title = 'Correlation between number of '+xtitle.toLowerCase()+' and '+ytitle.toLowerCase()+' value'
+                console.log(title)
                 this.chartOptions = {
                     chart: {
                         height: 500,
@@ -148,23 +149,39 @@
                     },
                     fill: { type:'solid' },
                     markers: { size: [6, 0] },
-                    tooltip: { shared: false, intersect: true, },
+                    tooltip: { 
+                        followCursor: true,
+                        custom: function({dataPointIndex}) {
+                            return '<div class="arrow_box" style="padding: 5px; text-align:left">' +
+                            '<img src="'+ countryList[dataPointIndex].flag+'" width="20px" />'+
+                            '<strong style="margin-left: 5px;">' + countryList[dataPointIndex].name + '</strong><br/>' +
+                            '<span>'+ xtitle+': '+self.valueConvert(dataScatter[dataPointIndex].x, 0)+'</span><br>'+
+                            '<span>'+ ytitle+': '+self.valueConvert(dataScatter[dataPointIndex].y)+'</span>'+
+                            '</div>'
+                        }
+                    },
                     legend: { show: false },
-                    xaxis: { type: 'numeric', tickAmount: 12, labels: {
+                    xaxis: { type: 'numeric', tickAmount: 10, labels: {
                         formatter: function(value) {
-                            return value.toFixed()
+                            return self.valueConvert(value,0)
                         }},
                         title:{
                             text: xtitle
-                        }
+                        },
+                        tooltip:{ enabled: false }
                      },
-                    yaxis: { type: 'numeric', tickAmount: 12, labels: {
+                    yaxis: { type: 'numeric', tickAmount: 10, labels: {
                         formatter: function(value) {
-                            return value.toFixed()
+                            let label = self.valueConvert(value, 0)
+                            return label
                         }},
                         title:{
                             text: ytitle
-                        }
+                        },
+                     },
+                     title: {
+                         text: title,
+                         align: 'center'
                      }
                 }
                 this.getStatData(stats, regression)
@@ -173,26 +190,25 @@
             getStatData(stats, regression){
                 //TRENDLINE
                 let a = regression.regressionFirst.beta2, b = regression.regressionFirst.beta1, equation = ''
-                if(a.toFixed(2)!=0) equation += a.toFixed(2)+'x'
+                if(a.toFixed(2)!=0) equation += this.valueConvert(a)+'x'
                 else if( Math.abs(a.toPrecision(1))>0.00001) equation += a.toPrecision(2)+'x'
                 if(equation!=''){
-                    if(b.toFixed(2)<0) equation += ' - '+ Math.abs(b).toFixed(2)
-                    else if(b.toFixed(2)>0) equation += ' + '+ b.toFixed(2)
+                    if(b.toFixed(2)<0) equation += ' - '+ this.valueConvert(Math.abs(b))
+                    else if(b.toFixed(2)>0) equation += ' + '+ this.valueConvert(b)
                 }else{
-                    equation = b.toFixed(2)
+                    equation = this.valueConvert(b)
                 }
                 equation = 'y = '+equation
                 this.statistic['Trendline'] = equation
                 //PEARSON
-                this.statistic['Pearson correlation coefficient <-1, 1>'] = regression.correlationCoefficient.toFixed(4)
-                this.statistic['Coefficient of determination (R squared) <0, 1>'] = regression.coefficientOfDetermination.toFixed(4)
-                this.statistic['Phi coefficient <0°, 90°>'] = regression.phi.toFixed(4)
-                this.statistic['Covariance <-1, 1>'] = stats.covariance('x','y').covariance.toFixed(4)
+                this.statistic['Pearson correlation coefficient'] = this.valueConvert(regression.correlationCoefficient, 4)
+                this.statistic['Coefficient of determination (R squared)'] = this.valueConvert(regression.coefficientOfDetermination,4)
+                this.statistic['Phi coefficient'] = this.valueConvert(regression.phi,4)
+                this.statistic['Covariance'] = this.valueConvert(stats.covariance('x','y').covariance,4)
                 let gKG = stats.goodmanKruskalsGamma('x','y')
-                this.statistic["Goodman and Kruskal's Gamma <-1, 1>"] = gKG.gamma.toFixed(4)
+                this.statistic["Goodman and Kruskal's Gamma"] = this.valueConvert(gKG.gamma,4)
                 this.statistic["T statistic"] = gKG.tStatistic.toFixed(4)
-                this.statistic["Spearman's rank correlation <-1, 1>"] = stats.spearmansRho('x','y').rho.toFixed(4)
-                console.log(JSON.stringify(Object.keys(this.statistic)))
+                this.statistic["Spearman's rank correlation"] = this.valueConvert(stats.spearmansRho('x','y').rho,4)
             },
             // calculatePearson(data){
             //     let x = [], y = []
@@ -226,8 +242,8 @@
                 {value: 'population', text: 'Population'},
                 {value: 'density', text: 'Population density'},
                 {value: 'gini', text: 'Gini coefficient'},
-                {value: 'gdp', text: 'Gross domestic product (GDP)'},
-                {value: 'gdpPerCapita', text: 'Gross domestic product per capita (GDP per capita)'},
+                {value: 'gdp', text: 'GDP'},
+                {value: 'gdpPerCapita', text: 'GDP per capita'},
             ]
         },
         components:{
