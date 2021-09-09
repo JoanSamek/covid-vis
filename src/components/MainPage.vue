@@ -2,7 +2,7 @@
     <div>
         <b-tabs content-class='mt-3' v-model='tabIndex' justified>
             <b-tab title='World' :title-link-class='linkClass(0)'>
-                <World :worldCases='worldCases' @country-details='getCountryDetails' />
+                <World :worldCases='worldCases' @country-details='getCountryDetails' @newReportElement="updateReport"/>
             </b-tab>
             <b-tab title='Country' :title-link-class='linkClass(1)'>
                 <v-select :options='worldCases' label='country' v-model='chosenCountry' style='width:80%; margin: auto;' placeholder='Please select a country'></v-select>
@@ -12,28 +12,8 @@
             <b-tab title='Correlation' :title-link-class='linkClass(2)'>
                 <Correlation :worldIndicators='worldIndicators'  :worldCases='worldCases' :gdp='gdp' :gdpPerCapita='gdpPerCapita'/>
             </b-tab>
-            <b-tab title='Raport' title-link-class='text-info'><br>
-                <b-container>
-                    <b-row>
-                        <b-col>
-                            <b-list-group style='width: 400px; text-align: left; margin-left:200px;'>
-                                <h3> Elements of the report</h3>
-                                <b-list-group-item v-for='(element, i) in raportFile' :key='i'>
-                                    {{element}}
-                                    <b-badge variant='danger' pill style='float: right;'>delete</b-badge>
-                                </b-list-group-item>
-                            </b-list-group>
-                        </b-col>
-                        <b-col><br>
-                            <h4>Download report</h4>
-                            <b-button-group>
-                                <b-button variant='info'>pdf</b-button>
-                                <b-button variant='info'>doc</b-button>
-                                <b-button variant='info'>ppt</b-button>
-                            </b-button-group>
-                        </b-col>
-                    </b-row>
-                </b-container>
+            <b-tab title='Report' title-link-class='text-info'><br>
+               <Report :report='report' />
             </b-tab>
             <template #tabs-end>
                 <li role='presentation' class='nav-item align-self-center h3'>COVID-19 Analytics</li>
@@ -48,6 +28,7 @@
     import World from './tabs/World'
     import Country from './tabs/Country'
     import Correlation from './tabs/Correlation'
+    import Report from './tabs/Report'
 
     export default {
         name: 'MainPage',
@@ -63,7 +44,7 @@
                 gdp: {},
                 gdpPerCapita: {},
                 //RAPORT TAB
-                raportFile:['Total cases world map', 'Spain - description card', 'Spain - last 30 days chart', 'Total tests world map']
+                report:[]
             }
         },
         computed: {
@@ -101,7 +82,11 @@
                     }
                 })
                 return countriesDict
-            }
+            },
+            updateReport(variable) {
+                console.log(variable)
+                this.report.push(variable);
+            },
         },
         created(){
             //get world cases data
@@ -144,7 +129,8 @@
         components:{
             World,
             Country,
-            Correlation
+            Correlation,
+            Report
         }
     }
 </script>

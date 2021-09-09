@@ -45,14 +45,14 @@
                     </b-button-group>
                 </b-col>
                 <b-col cols=7 >
-                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: 8px; right: 16px; z-index: 1000;' class='h1 border rounded p-1 bg-warning'></b-icon>
+                    <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; top: 8px; left: 95px; z-index: 100;' class='h1 border rounded p-1 bg-warning'></b-icon>
                     <apexchart type="line" height="500" :options="chartOptions" :series="countryChartData" style='margin-left: 20px;'></apexchart>
                 </b-col>
             </b-row>
         </b-container>
         <b-container style='width:100%; max-width: 100%; ' v-if='countryChartData&&!error'>
             <b-col cols=12 style='height:50px;'>
-                <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; position: absolute; bottom: 4px; right: 50px;' class='h2'></b-icon>
+                <!-- <b-icon icon='file-earmark-spreadsheet-fill' v-b-tooltip.hover title='get csv' variant='warning' style='cursor:pointer; position: absolute; bottom: 4px; right: 50px;' class='h2'></b-icon> -->
                 <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position: absolute; bottom: 0px; right: 0px; ' class='h1 border rounded p-1 bg-warning'></b-icon>
             </b-col >
             <b-table striped :items='countryTableData' :fields='countryTable'></b-table>
@@ -110,13 +110,13 @@
                             { name: "recovered", data: [] },
                         ], 
                     options = {
-                            chart: { height: 500, type: 'line', zoom: { enabled: false } },
+                            chart: { height: 500, type: 'line', zoom: { enabled: true } },
                             colors: ['#17a2b8', '#dc3545', '#28a745'],
-                            // colors: ['#2d73f5', '#ff6358', '#78d237'],
                             dataLabels: { enabled: false },
                             stroke: { curve: 'smooth', width: 1.5 },
                             grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }, },
-                            xaxis: { categories: [], tickAmount: 10, }
+                            xaxis: { categories: [], tickAmount: 10, },
+                            yaxis: {min:0}
                         }
                 let link ='https://disease.sh/v3/covid-19/historical/'
                 link+=this.chosenCountry.country+'?lastdays='+this.countryPeriod
@@ -158,6 +158,31 @@
                         console.log(err); 
                         //Country not found or doesn't have any historical data (Mont...)
                     })
+            },
+            addToReport(item){
+                let self = this
+                let title, newElement = {}
+                const saveToArchive = async (chartId) => {
+                    const chartInstance = window.Apex._chartInstances.find(chart => chart.id === chartId);
+                    const base64 = await chartInstance.chart.dataURI();
+                    return base64;
+                }
+                switch(item){
+                    case 'chart':
+                        title = 'COVID-19: World '+self.worldVariant
+                        // htmlToImage
+                        //     .toJpeg(document.getElementById('worldMap'), { quality: 1 })
+                        //     .then(function (dataUrl) {
+                                newElement = {
+                                    'title': title, 
+                                    'img': saveToArchive('worldMap'), 
+                                    'width': document.getElementById('worldMap').offsetWidth,
+                                    'height': document.getElementById('worldMap').offsetHeight,
+                                }
+                                self.$emit("newReportElement", newElement);
+                        // });
+                        break;
+                }
             }
         },
         created(){

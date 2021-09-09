@@ -29,6 +29,7 @@
                            <b-icon icon='journal-plus' v-b-tooltip.hover title='add to raport' style='color:white; cursor:pointer; position:absolute; top:8px; right: 8px;' class='h1 border rounded p-1 bg-warning'></b-icon>
                         </b-card-text>
                         <b-table stacked :items="[statistic]"></b-table>
+                        <h5><i>{{comment}}</i></h5>
                     </b-card>
                 </b-col>
             </b-row>
@@ -55,10 +56,25 @@
                 loading: false,
                 error: null,
                 statistic: {},
+                personCorr: 0
             }
         },
         computed: {
-            
+            comment(){
+                let corr = Math.abs(this.personCorr)
+                let comment
+                if(corr<0.2) comment = 'Weak'
+                else if(corr<0.4) comment = 'Low'
+                else if(corr<0.6) comment = 'Moderate'
+                else if(corr<0.8) comment = 'High'
+                else if(corr<0.9) comment = 'Very High'
+                else comment = 'Almost full'
+                
+                if(this.personCorr>0) comment += ' positive'
+                else comment += ' negative'
+
+                return comment + ' correlation'
+            }
         },
         watch:{
             covidIndicator(val){
@@ -141,7 +157,6 @@
                 let xtitle = this.covidOptions.find(element => element.value==this.covidIndicator)['text']
                 let ytitle = this.countryOptions.find(element => element.value==this.countryIndicator)['text']
                 let title = 'Correlation between number of '+xtitle.toLowerCase()+' and '+ytitle.toLowerCase()+' value'
-                console.log(title)
                 this.chartOptions = {
                     chart: {
                         height: 500,
@@ -201,14 +216,20 @@
                 equation = 'y = '+equation
                 this.statistic['Trendline'] = equation
                 //PEARSON
+                this.personCorr = regression.correlationCoefficient
                 this.statistic['Pearson correlation coefficient'] = this.valueConvert(regression.correlationCoefficient, 4)
                 this.statistic['Coefficient of determination (R squared)'] = this.valueConvert(regression.coefficientOfDetermination,4)
-                this.statistic['Phi coefficient'] = this.valueConvert(regression.phi,4)
                 this.statistic['Covariance'] = this.valueConvert(stats.covariance('x','y').covariance,4)
+                this.statistic["Spearman's rank correlation"] = this.valueConvert(stats.spearmansRho('x','y').rho,4)
+                // let kT = Object.entries(stats.kendallsTau('x','y')).map(([key,item])=>{
+                //     if(item){
+                //         return key+': '+this.valueConvert(item['tau'+key.toUpperCase()])
+                //     }
+                // }).filter(val => {return val})
+                // this.statistic["Kendall rank correlation"] = kT.join(', ')
                 let gKG = stats.goodmanKruskalsGamma('x','y')
                 this.statistic["Goodman and Kruskal's Gamma"] = this.valueConvert(gKG.gamma,4)
-                this.statistic["T statistic"] = gKG.tStatistic.toFixed(4)
-                this.statistic["Spearman's rank correlation"] = this.valueConvert(stats.spearmansRho('x','y').rho,4)
+                // this.statistic["T statistic"] = gKG.tStatistic.toFixed(4)
             },
             // calculatePearson(data){
             //     let x = [], y = []
